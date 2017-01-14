@@ -10,20 +10,35 @@ if !exists('g:git_resolve_links')
   let g:git_resolve_links = 0
 endif
 
-command! SetIsGitDirectory :call SetIsGitDirectory()
-command! AbortIfNotGitDirectory :call AbortIfNotGitDirectory()
+if !exists('g:auto_save_enabled')
+  let g:auto_save_enabled = 1
+endif
+if !exists('g:is_git_directory')
+  let g:is_git_directory = 0
+endif
+if !exists('g:auto_save_presave_hook')
+  let g:auto_save_presave_hook =  'AbortIfNotGitDirectory'
+endif
 
-" just for now. will be moved to vimrc
-let  g:auto_save_BufEnter_hook = 'SetIsGitDirectory'
-let  g:auto_save_presave_hook = 'AbortIfNotGitDirectory'
-let  g:is_git_directory = 0
+augroup git_auto_save
+  autocmd!
+  execute "au BufEnter * nested call SetIsAutoSaveEnabled()" 
+augroup END
+
+command! AbortIfNotGitDirectory :call AbortIfNotGitDirectory()
 
 function! AbortIfNotGitDirectory()
   if g:auto_save >= 1
-    if g:is_git_directory = 0
-      let g:auto_save = 0
+    if g:is_git_directory == 0
+      let g:auto_save_enabled = 0
+    else
+      let g:auto_save_enabled = 1
     endif
   endif
+endfunction
+
+function! s:IsDirectory(pattern)
+  return stridx(a:pattern, '/') != -1
 endfunction
 
 function! s:FindAncestor(pattern)
@@ -82,13 +97,35 @@ function! s:FindRootDirectory()
   return s:RootDirectory()
 endfunction
 
-function! SetIsGitDirectory()
+function! SetIsAutoSaveEnabled()
   let git_directory = s:FindRootDirectory()
   if empty(git_directory)
     let g:is_git_directory = 0
+    let g:auto_save_enabled = 0
   else
+    let g:auto_save_enabled = 1
     let g:is_git_directory = 1
   endif
 endfunction
 
+function! s:ChangeDirectoryForBuffer()
+  let patterns = split(g:git_targets, ',')
 
+  if isdirectory(s:fd)
+    return index(patterns, '/') != -1
+  endif
+
+  if filereadable(s:fd) && empty(&buftype)
+    if exists('*glob2regpat')
+      for p in patterns
+        if p !=# '/' && s:fd =~# glob2regpat(p)
+          return 1
+        endif
+      endfor
+    else
+      return 1
+    endif
+  endif
+
+  return 0
+endfunction
