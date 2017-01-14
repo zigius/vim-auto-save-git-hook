@@ -10,8 +10,8 @@ if !exists('g:git_resolve_links')
   let g:git_resolve_links = 0
 endif
 
-if !exists('g:auto_save_enabled')
-  let g:auto_save_enabled = 1
+if !exists('g:auto_save_abort')
+  let g:auto_save_abort = 1
 endif
 if !exists('g:is_git_directory')
   let g:is_git_directory = 0
@@ -30,9 +30,9 @@ command! AbortIfNotGitDirectory :call AbortIfNotGitDirectory()
 function! AbortIfNotGitDirectory()
   if g:auto_save >= 1
     if g:is_git_directory == 0
-      let g:auto_save_enabled = 0
+      let g:auto_save_abort = 0
     else
-      let g:auto_save_enabled = 1
+      let g:auto_save_abort = 1
     endif
   endif
 endfunction
@@ -101,9 +101,9 @@ function! SetIsAutoSaveEnabled()
   let git_directory = s:FindRootDirectory()
   if empty(git_directory)
     let g:is_git_directory = 0
-    let g:auto_save_enabled = 0
+    let g:auto_save_abort = 0
   else
-    let g:auto_save_enabled = 1
+    let g:auto_save_abort = 1
     let g:is_git_directory = 1
   endif
 endfunction
