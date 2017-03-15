@@ -10,6 +10,9 @@ if !exists('g:git_resolve_links')
   let g:git_resolve_links = 0
 endif
 
+if !exists('g:auto_save_abort')
+  let g:auto_save_abort = 1
+endif
 if !exists('g:is_git_directory')
   let g:is_git_directory = 0
 endif
